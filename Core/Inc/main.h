@@ -47,6 +47,8 @@ extern osMessageQueueId_t BLEQueueHandle;
 extern osMutexId_t i2c2MutexHandle;
 // 蜂鸣器定时器句柄
 extern osTimerId_t BeepTimerHandle;
+//按键中断操作句柄
+extern osSemaphoreId_t InputEventSemHandle;
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -58,14 +60,16 @@ extern osTimerId_t BeepTimerHandle;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void SystemClock_Config(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define KEY3_Pin GPIO_PIN_3
 #define KEY3_GPIO_Port GPIOE
+#define KEY3_EXTI_IRQn EXTI3_IRQn
 #define KEY1_Pin GPIO_PIN_4
 #define KEY1_GPIO_Port GPIOE
+#define KEY1_EXTI_IRQn EXTI4_IRQn
 #define SDA_Pin GPIO_PIN_4
 #define SDA_GPIO_Port GPIOC
 #define SCL_Pin GPIO_PIN_5

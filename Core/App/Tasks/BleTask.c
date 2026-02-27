@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "freertos.h"
+#include "farmState.h"
 
 /**
  * @brief 蓝牙通信任务主函数
@@ -67,6 +68,10 @@ void StartBLETask(void *argument) {
 
             // 发送完成后，释放消息内存（消息由SensorTask使用pvPortMalloc分配）
             vPortFree(msg);
+            // 【核心改造】：活干完了，待办任务 -1
+            if (ble_pending_msgs > 0) {
+                ble_pending_msgs--;
+            }
         }
     }
 }

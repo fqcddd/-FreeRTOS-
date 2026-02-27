@@ -145,16 +145,63 @@ void StartInputTask(void *argument) {
 
   // 主循环：持续检测用户输入
   for (;;) {
-    // 检测KEY1按下：切换页面（首页 <-> 阈值设置页）
-    if (isKey1Clicked()) {
-      ScreenPage_NextPage();
+
+    // 【核心动态门卫】：
+    // 如果当前在阈值设置页 (PAGE_RANGE)，我们需要随时读取旋钮，最多睡 50ms。
+    // 如果在其他页面，旋钮无效，直接进入 osWaitForever 深度死睡，直到 EXTI 中断把它踹醒！
+    uint32_t waitTime = (pageIndex == PAGE_RANGE) ? 50 : osWaitForever;
+
+    // 任务在这里挂起等待：
+    // 1. 要么被按键的 EXTI 中断（信号量）瞬间叫醒
+    // 2. 要么 50ms 超时自然醒（仅限设置页）
+    osSemaphoreAcquire(InputEventSemHandle, waitTime);
+
+    // // 检测KEY1按下：切换页面（首页 <-> 阈值设置页）
+    // if (isKey1Clicked()) {
+    //   ScreenPage_NextPage();
+    // }
+
+    // ==========================================
+    // 1. 直接处理 KEY1 (PE4)
+    // ==========================================
+    if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4) == GPIO_PIN_RESET) {
+      osDelay(20); // 二次软件消抖，确保万无一失
+      if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4) == GPIO_PIN_RESET) {
+
+        ScreenPage_NextPage(); // 执行翻页
+
+        // 【核心防连按机制】：死等用户松开手指！
+        // 只要引脚还是低电平，就在这里转圈，并且交出 CPU 避免卡死其他任务
+        while(HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_4) == GPIO_PIN_RESET) {
+          osDelay(10);
+        }
+      }
     }
 
-    // 在阈值设置页时，处理阈值编辑相关输入
+    // // 在阈值设置页时，处理阈值编辑相关输入
+    // if (pageIndex == PAGE_RANGE) {
+    //   // 检测KEY3按下：切换浏览/编辑模式
+    //   if (isKey3Clicked()) {
+    //     RangeEditState_Toggle();
+    //   }
+
+    // ==========================================
+    // 2. 只有在设置页时，才处理 KEY3 和旋钮
+    // ==========================================
     if (pageIndex == PAGE_RANGE) {
-      // 检测KEY3按下：切换浏览/编辑模式
-      if (isKey3Clicked()) {
-        RangeEditState_Toggle();
+
+      // 直接处理 KEY3 (PE3)
+      if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_3) == GPIO_PIN_RESET) {
+        osDelay(20);
+        if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_3) == GPIO_PIN_RESET) {
+
+          RangeEditState_Toggle(); // 切换编辑模式
+
+          // 死等用户松手
+          while(HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_3) == GPIO_PIN_RESET) {
+            osDelay(10);
+          }
+        }
       }
 
       // 检测旋钮旋转方向
@@ -178,6 +225,6 @@ void StartInputTask(void *argument) {
     }
 
     // 延时10ms后继续下一次输入检测
-    osDelay(10);
+    osDelay(25);
   }
 }

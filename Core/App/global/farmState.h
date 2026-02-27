@@ -66,5 +66,7 @@ extern FarmSafeRange farmSafeRange; // 环境安全范围阈值（用户可配�
  */
 void EnvSafeRange_Init();
 
+extern volatile uint8_t ble_pending_msgs ;
+
 
 #endif //SMARTFARM_FARM_STATE_H

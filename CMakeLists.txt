@@ -79,6 +79,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/BSP/aht20/aht20.h
     Core/BSP/BMP280/BMP280.c
     Core/BSP/BMP280/BMP280.h
+    Core/App/StopModeRtc.c
+    Core/App/StopModeRtc.h
+    Core/BSP/debug_log/debug_log.c
+    Core/BSP/debug_log/debug_log.h
 )
 
 # Add include paths
@@ -93,6 +97,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Core/BSP/pump
     Core/BSP/aht20
     Core/BSP/BMP280
+    Core/BSP/debug_log
     Core/App
     Core/App/Tasks
     Core/Middlewares
@@ -112,4 +117,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     stm32cubemx
 
     # Add user defined libraries
+
 )

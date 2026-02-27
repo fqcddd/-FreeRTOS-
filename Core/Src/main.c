@@ -22,6 +22,7 @@
 #include "adc.h"
 #include "dma.h"
 #include "i2c.h"
+#include "rtc.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -29,6 +30,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include <screen.h>
+#include <stdio.h>  // 【新增】引入 printf 所在的标准库
+#include <stdarg.h> // 处理可变参数需要的库
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,6 +105,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ADC2_Init();
   MX_TIM3_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -138,10 +143,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
@@ -163,7 +169,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_ADC;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
@@ -172,7 +179,38 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
 
+  // 【防弹衣】：如果在开机瞬间、信号量还没创建时触发了中断，直接忽略，防止空指针死机！
+  if (InputEventSemHandle == NULL) {
+    return;
+  }
+
+  // 静态变量，记录上一次有效按键的时间戳
+  static uint32_t last_trigger_time = 0;
+
+  // 获取当前系统的运行时间 (毫秒)
+  uint32_t current_time = HAL_GetTick();
+
+  // 判断是不是我们的 KEY1 (PE4) 或 KEY3 (PE3) 触发的
+  if (GPIO_Pin == GPIO_PIN_4 || GPIO_Pin == GPIO_PIN_3)
+  {
+    // 核心防抖魔法：距离上次触发必须超过 50 毫秒！
+    // 凡是 50 毫秒内接连触发的电平跳变，统统视为弹片抖动，直接无视！
+    if (current_time - last_trigger_time > 50)
+    {
+      // 释放信号量，把死睡的 InputTask 叫醒
+      osSemaphoreRelease(InputEventSemHandle);
+
+      // 刷新最后一次有效按键的时间
+      last_trigger_time = current_time;
+
+      // 【核心新增】：只要有按键按下，立刻重置清醒倒计时为 1 秒！
+      ui_keep_awake_ms = 5000;
+    }
+  }
+}
 /* USER CODE END 4 */
 
 /**

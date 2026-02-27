@@ -95,6 +95,11 @@ osMutexId_t i2c2MutexHandle;
 const osMutexAttr_t i2c2Mutex_attributes = {
   .name = "i2c2Mutex"
 };
+/* Definitions for InputEventSem */
+osSemaphoreId_t InputEventSemHandle;
+const osSemaphoreAttr_t InputEventSem_attributes = {
+  .name = "InputEventSem"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -142,6 +147,10 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of InputEventSem */
+  InputEventSemHandle = osSemaphoreNew(1, 1, &InputEventSem_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */

@@ -8,6 +8,8 @@ SensorHistory_t soilHistory = { {0}, 0 }; // 初始化土壤缓冲区
 SensorHistory_t rainHistory = { {0}, 0 }; // 【新增】：初始化降雨量缓冲区
 SensorHistory_t lightHistory = { {0}, 0 }; // 【新增】：初始化光照缓冲区
 
+volatile uint32_t ui_keep_awake_ms = 6000;
+
 // 全局变量定义
 ScreenPage pageIndex = PAGE_HOME1; // 当前页面索引，默认为首页
 

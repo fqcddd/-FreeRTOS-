@@ -1,6 +1,8 @@
 
 #include "farmState.h"
 
+extern volatile uint8_t ble_pending_msgs = 0;
+
 // 全局变量定义
 // 【修改这里】：暂时赋初值，防止屏幕上全显示 0
 FarmState farmState = {

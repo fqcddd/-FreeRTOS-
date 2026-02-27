@@ -131,6 +131,10 @@ extern SensorHistory_t soilHistory; // 土壤历史数据
 extern SensorHistory_t rainHistory; // 【新增】：降雨量历史数据
 extern SensorHistory_t lightHistory; // 【新增】：光照历史数据
 
+//开机清醒时间，保证在低功耗睡眠前开机动画渲染完毕
+extern volatile uint32_t ui_keep_awake_ms;
+
+
 
 
 #endif //SMARTFARM_SCREEN_H
