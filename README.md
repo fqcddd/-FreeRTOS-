@@ -1,6 +1,8 @@
 基于STM32F103ZET6开发板使用FreeRTOS系统实现各种传感器模块开发(降雨、土壤、大气压、温度、湿度、光照)，通过OLED实时显示各种参数，并将检测报警信息通过蓝牙与上位机通信
 
-该项目在波特律动stm32C8T6的基础上改动(https://docs.keysking.com/), 使用Clion和cubeMX结合进行开发:
+该项目在波特律动stm32C8T6的基础上改动(https://docs.keysking.com/), 使用Clion和cubeMX结合进行开发
+
+**具体改动和新增如下：**
 
 1. 将代码从C8T6移植到ZET6
 
